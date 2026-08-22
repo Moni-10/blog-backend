@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Multi-Level Category System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+    }
+
+    h2 {
+      margin-top: 40px;
+      color: #333;
+    }
+
+    form {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    input, textarea, select, button {
+      width: 100%;
+      margin-bottom: 15px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Multi-Level Category Manager</h1>
+
+    <!-- Top-Level Category Form -->
+    <h2>Add Top-Level Category</h2>
+    <form id="topCategoryForm">
+      <input type="text" id="topCategoryName" placeholder="Category Name" required>
+      <input type="file" id="topCategoryImage" accept="image/*">
+      <textarea id="topCategoryDescription" placeholder="Description"></textarea>
+      <button type="submit">Add Top-Level Category</button>
+    </form>
+
+    <!-- Subcategory Form -->
+    <h2>Add Subcategory</h2>
+    <form id="subCategoryForm">
+      <select id="topCategorySelect" required>
+        <option value="">Select Top-Level Category</option>
+      </select>
+      <input type="text" id="subCategoryName" placeholder="Subcategory Name" required>
+      <input type="file" id="subCategoryImage" accept="image/*">
+      <textarea id="subCategoryDescription" placeholder="Description"></textarea>
+      <button type="submit">Add Subcategory</button>
+    </form>
+
+    <!-- Sub-Subcategory Form -->
+    <h2>Add Sub-Subcategory</h2>
+    <form id="subSubCategoryForm">
+      <select id="subCategorySelect" required>
+        <option value="">Select Subcategory</option>
+      </select>
+      <input type="text" id="subSubCategoryName" placeholder="Sub-Subcategory Name" required>
+      <input type="file" id="subSubCategoryImage" accept="image/*">
+      <textarea id="subSubCategoryDescription" placeholder="Description"></textarea>
+      <button type="submit">Add Sub-Subcategory</button>
+    </form>
+
+    <!-- Sub-Sub-Subcategory Form -->
+    <h2>Add Sub-Sub-Subcategory</h2>
+    <form id="subSubSubCategoryForm">
+      <select id="subSubCategorySelect" required>
+        <option value="">Select Sub-Subcategory</option>
+      </select>
+      <input type="text" id="subSubSubCategoryName" placeholder="Sub-Sub-Subcategory Name" required>
+      <input type="file" id="subSubSubCategoryImage" accept="image/*">
+      <textarea id="subSubSubCategoryDescription" placeholder="Description"></textarea>
+      <button type="submit">Add Sub-Sub-Subcategory</button>
+    </form>
+
+    <!-- Sub-Sub-Sub-Subcategory Form -->
+    <h2>Add Sub-Sub-Sub-Subcategory</h2>
+    <form id="subSubSubSubCategoryForm">
+      <select id="subSubSubCategorySelect" required>
+        <option value="">Select Sub-Sub-Subcategory</option>
+      </select>
+      <input type="text" id="subSubSubSubCategoryName" placeholder="Sub-Sub-Sub-Subcategory Name" required>
+      <input type="file" id="subSubSubSubCategoryImage" accept="image/*">
+      <textarea id="subSubSubSubCategoryDescription" placeholder="Description"></textarea>
+      <button type="submit">Add Sub-Sub-Sub-Subcategory</button>
+    </form>
+
+    <!-- Product Form -->
+    <h2>Add Product</h2>
+    <form id="productForm">
+      <input type="text" id="productName" placeholder="Product Name" required>
+      <input type="file" id="productImage" accept="image/*" required>
+      <textarea id="productDescription" placeholder="Description" required></textarea>
+      <input type="number" id="productPrice" placeholder="Price" required>
+      <select id="productCategorySelect" required>
+        <option value="">Select Category</option>
+      </select>
+      <button type="submit">Add Product</button>
+    </form>
+  </div>
+
+  <!-- Place this inside <script> -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const apiBase = 'http://localhost:3000';
+
+  const selectors = {
+    top: 'topCategorySelect',
+    sub: 'subCategorySelect',
+    subSub: 'subSubCategorySelect',
+    subSubSub: 'subSubSubCategorySelect',
+    subSubSubSub: 'subSubSubSubCategorySelect',
+    product: 'productCategorySelect'
+  };
+
+  const categoryForms = [
+    { id: 'topCategoryForm', parentSelect: null },
+    { id: 'subCategoryForm', parentSelect: selectors.top },
+    { id: 'subSubCategoryForm', parentSelect: selectors.sub },
+    { id: 'subSubSubCategoryForm', parentSelect: selectors.subSub },
+    { id: 'subSubSubSubCategoryForm', parentSelect: selectors.subSubSub }
+  ];
+
+  const productForm = document.getElementById('productForm');
+
+  const dropdowns = {};
+  for (const key in selectors) {
+    dropdowns[key] = document.getElementById(selectors[key]);
+  }
+
+  let allCategories = [];
+
+  async function fetchCategories() {
+    const res = await fetch(`${apiBase}/categories`);
+    allCategories = await res.json();
+    populateTopCategories();
+  }
+
+  function getCategoryLevel(category, allCategories) {
+  let level = 1;
+  let current = category;
+  while (current.parent) {
+    const parent = allCategories.find(c => c._id === current.parent._id);
+    if (!parent) break;
+    level++;
+    current = parent;
+  }
+  return level;
+}
+
+function populateTopCategories() {
+  const topCategories = allCategories.filter(cat => !cat.parent);
+  fillDropdown(dropdowns.top, topCategories, 'Select Top-Level Category');
+
+  // ✅ Filter and show only 5th-level categories in product dropdown
+  const fifthLevelCategories = allCategories.filter(cat => getCategoryLevel(cat, allCategories) === 5);
+  fillDropdown(dropdowns.product, fifthLevelCategories, 'Select Category');
+}
+
+
+  
+  function fillDropdown(select, items, placeholder) {
+    select.innerHTML = `<option value="">${placeholder}</option>`;
+    items.forEach(cat => {
+      const option = document.createElement('option');
+      option.value = cat._id;
+      option.textContent = cat.name;
+      select.appendChild(option);
+    });
+  }
+
+  function getChildrenOf(parentId) {
+    return allCategories.filter(cat => cat.parent && cat.parent._id === parentId);
+  }
+
+  dropdowns.top.addEventListener('change', () => {
+    const subs = getChildrenOf(dropdowns.top.value);
+    fillDropdown(dropdowns.sub, subs, 'Select Subcategory');
+    fillDropdown(dropdowns.subSub, [], 'Select Sub-Subcategory');
+    fillDropdown(dropdowns.subSubSub, [], 'Select Sub-Sub-Subcategory');
+    fillDropdown(dropdowns.subSubSubSub, [], 'Select Sub-Sub-Sub-Subcategory');
+  });
+
+  dropdowns.sub.addEventListener('change', () => {
+    const subs = getChildrenOf(dropdowns.sub.value);
+    fillDropdown(dropdowns.subSub, subs, 'Select Sub-Subcategory');
+    fillDropdown(dropdowns.subSubSub, [], 'Select Sub-Sub-Subcategory');
+    fillDropdown(dropdowns.subSubSubSub, [], 'Select Sub-Sub-Sub-Subcategory');
+  });
+
+  dropdowns.subSub.addEventListener('change', () => {
+    const subs = getChildrenOf(dropdowns.subSub.value);
+    fillDropdown(dropdowns.subSubSub, subs, 'Select Sub-Sub-Subcategory');
+    fillDropdown(dropdowns.subSubSubSub, [], 'Select Sub-Sub-Sub-Subcategory');
+  });
+
+  dropdowns.subSubSub.addEventListener('change', () => {
+    const subs = getChildrenOf(dropdowns.subSubSub.value);
+    fillDropdown(dropdowns.subSubSubSub, subs, 'Select Sub-Sub-Sub-Subcategory');
+  });
+
+  // Category form submissions
+  categoryForms.forEach(({ id, parentSelect }) => {
+    const form = document.getElementById(id);
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      const nameInput = form.querySelector('input[type="text"]');
+      const imageInput = form.querySelector('input[type="file"]');
+      const descInput = form.querySelector('textarea');
+
+      const name = nameInput.value;
+      const description = descInput.value;
+      const image = imageInput.files[0];
+
+      const payload = new FormData();
+      payload.append('name', name);
+      payload.append('description', description);
+      if (image) payload.append('image', image);
+      if (parentSelect) {
+        const parentId = document.getElementById(parentSelect).value;
+        if (!parentId) return alert('Please select a parent category.');
+        payload.append('parent', parentId);
+      }
+
+      const res = await fetch(`${apiBase}/categories`, {
+        method: 'POST',
+        body: payload
+      });
+
+      if (res.ok) {
+        alert('Category Added!');
+        form.reset();
+        fetchCategories();
+      }
+    });
+  });
+
+  // Product form submission
+  productForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const formData = new FormData(productForm);
+
+    const name = formData.get('productName');
+    const image = document.getElementById('productImage').files[0];
+    const description = formData.get('productDescription');
+    const price = formData.get('productPrice');
+    const category = dropdowns.product.value;
+
+    if (!category) return alert('Please select a category for the product.');
+
+    const payload = new FormData();
+    payload.append('name', name);
+    payload.append('image', image);
+    payload.append('description', description);
+    payload.append('price', price);
+    payload.append('category', category);
+
+    const res = await fetch(`${apiBase}/products`, {
+      method: 'POST',
+      body: payload
+    });
+
+    if (res.ok) {
+      alert('Product Added!');
+      productForm.reset();
+    }
+  });
+
+  fetchCategories();
+});
+</script>
+
+</body>
+</html>
