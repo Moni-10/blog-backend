@@ -9,6 +9,10 @@ const BlogSchema = new mongoose.Schema({
 
   content: { type: String, required: true }, // full HTML
 
+  excerpt: { type: String, default: "", maxlength: 500 },
+  featuredImage: { type: String, default: "" },
+  featuredImageAlt: { type: String, default: "" },
+
   images: {
     type: [String], // uploaded image URLs
     default: [],
@@ -19,9 +23,34 @@ const BlogSchema = new mongoose.Schema({
     default: [],
   },
 
+  category: { type: mongoose.Schema.Types.ObjectId, ref: "Category", default: null },
+  authorName: { type: String, default: "Admin" },
+  publishDate: { type: Date, default: null },
+
+  focusKeyword: { type: String, default: "" },
+  secondaryKeywords: { type: [String], default: [] },
+
   metaTitle: { type: String },
   metaDescription: { type: String },
   metaKeyword: { type: String },
+  canonicalUrl: { type: String, default: "" },
+  ogTitle: { type: String, default: "" },
+  ogDescription: { type: String, default: "" },
+  ogImage: { type: String, default: "" },
+  schemaType: { type: String, enum: ["Article", "BlogPosting"], default: "BlogPosting" },
+  robotsIndex: { type: String, enum: ["index", "noindex"], default: "index" },
+  robotsFollow: { type: String, enum: ["follow", "nofollow"], default: "follow" },
+
+  faqs: { type: [{ question: { type: String, trim: true }, answer: { type: String, trim: true } }], default: [] },
+  relatedProducts: { type: [mongoose.Schema.Types.ObjectId], ref: "Product", default: [] },
+  relatedBlogs: { type: [mongoose.Schema.Types.ObjectId], ref: "Blog", default: [] },
+  cta: {
+    label: { type: String, default: "Get Quote" },
+    url: { type: String, default: "/contact" },
+  },
+  youtubeUrl: { type: String, default: "" },
+  internalLinks: { type: [{ label: String, url: String }], default: [] },
+  externalLinks: { type: [{ label: String, url: String }], default: [] },
 
   createdBy: { type: String }, // SEO employee name or ID
 

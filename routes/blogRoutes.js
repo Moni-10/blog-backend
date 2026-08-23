@@ -54,7 +54,7 @@ router.post("/upload-image", adminAuth, upload.single("image"), (req, res) => {
 router.get("/", adminAuth, async (req, res) => {
   try {
     const filter = req.query.websiteId ? { websiteId: req.query.websiteId } : {};
-    const blogs = await Blog.find(filter).populate("websiteId", "name domain platform").sort({ createdAt: -1 });
+    const blogs = await Blog.find(filter).populate("websiteId", "name domain platform").populate("category", "name").sort({ createdAt: -1 });
     res.json(blogs);
   } catch (error) {
     handleError(res, error);
@@ -139,7 +139,7 @@ router.delete("/delete/:id", adminAuth, async (req, res) => {
 
 router.get("/:id", adminAuth, async (req, res) => {
   try {
-    const blog = await Blog.findById(req.params.id).populate("websiteId", "name domain platform");
+    const blog = await Blog.findById(req.params.id).populate("websiteId", "name domain platform").populate("category", "name").populate("relatedProducts", "name image").populate("relatedBlogs", "title slug");
     if (!blog) return res.status(404).json({ error: "Blog not found" });
     res.json(blog);
   } catch (error) {

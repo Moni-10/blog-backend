@@ -10,6 +10,7 @@ const productRoutes = require("./routes/productRoutes.js");
 const accPriceRoutes = require("./routes/accpriceRoutes.js");
 const blogRoutes = require("./routes/blogRoutes.js");
 const websiteRoutes = require("./routes/websiteRoutes.js");
+const inquiryRoutes = require("./routes/inquiryRoutes.js");
 
 const app = express();
 const PORT = process.env.PORT || 5014;
@@ -28,6 +29,7 @@ app.use("/products", productRoutes);
 app.use("/accprice", accPriceRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/websites", websiteRoutes);
+app.use("/api/inquiries", inquiryRoutes);
 
 app.get("/health", (req, res) => {
   res.json({ ok: true, database: mongoose.connection.readyState === 1 ? "connected" : "disconnected" });
