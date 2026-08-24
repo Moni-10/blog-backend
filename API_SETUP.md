@@ -28,7 +28,7 @@ x-admin-key: YOUR_ADMIN_API_KEY
 
 {
   "name": "MMW Machine",
-  "domain": "mmwmachine.com",
+  "domain": "mohindramachine.tech",
   "description": "MMW Machine website",
   "platform": "coded"
 }
@@ -55,7 +55,7 @@ x-admin-key: YOUR_ADMIN_API_KEY
   "websiteId": "WEBSITE_MONGODB_ID",
   "title": "New machine blog",
   "content": "<p>Full HTML content</p>",
-  "images": ["https://api.example.com/uploads/blogs/image.webp"],
+  "images": ["https://blog-backend.mohindramachine.tech/uploads/blogs/image.webp"],
   "tags": ["machine", "manufacturing"],
   "metaTitle": "SEO title",
   "metaDescription": "SEO description",
@@ -77,19 +77,19 @@ x-admin-key: YOUR_ADMIN_API_KEY
 Public blog list for a domain:
 
 ```http
-GET /api/blogs/public/mmwmachine.com?page=1&limit=10
+GET /api/blogs/public/mohindramachine.tech?page=1&limit=10
 ```
 
 Public single blog:
 
 ```http
-GET /api/blogs/public/mmwmachine.com/new-machine-blog
+GET /api/blogs/public/mohindramachine.tech/new-machine-blog
 ```
 
 ## 4. Coded frontend
 
 ```js
-const response = await fetch("https://api.example.com/api/blogs/public/mmwmachine.com");
+const response = await fetch("https://blog-backend.mohindramachine.tech/api/blogs/public/mohindramachine.tech");
 const { blogs } = await response.json();
 ```
 
@@ -101,7 +101,7 @@ WordPress can read the same public endpoint. Example shortcode for a small custo
 
 ```php
 add_shortcode('central_blogs', function () {
-    $response = wp_remote_get('https://api.example.com/api/blogs/public/example.com');
+    $response = wp_remote_get('https://blog-backend.mohindramachine.tech/api/blogs/public/mohindramachine.tech');
     if (is_wp_error($response)) return '';
     $data = json_decode(wp_remote_retrieve_body($response), true);
     $html = '<div class="central-blogs">';
