@@ -233,13 +233,11 @@ app.use(
 
 app.use(
   "/api/blogs",
-  adminAuth,
   blogRoutes
 );
 
 app.use(
   "/api/websites",
-  adminAuth,
   websiteRoutes
 );
 
