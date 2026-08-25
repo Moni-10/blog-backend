@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Multi-Level Category System</title>
@@ -26,10 +27,13 @@
       padding: 20px;
       border-radius: 8px;
       margin-bottom: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
-    input, textarea, select, button {
+    input,
+    textarea,
+    select,
+    button {
       width: 100%;
       margin-bottom: 15px;
       padding: 10px;
@@ -58,6 +62,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <h1>Multi-Level Category Manager</h1>
@@ -134,177 +139,177 @@
   </div>
 
   <!-- Place this inside <script> -->
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const apiBase = 'http://localhost:3000';
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const apiBase = 'https://blog-backend.mohindramachine.tech';
+      const selectors = {
+        top: 'topCategorySelect',
+        sub: 'subCategorySelect',
+        subSub: 'subSubCategorySelect',
+        subSubSub: 'subSubSubCategorySelect',
+        subSubSubSub: 'subSubSubSubCategorySelect',
+        product: 'productCategorySelect'
+      };
 
-  const selectors = {
-    top: 'topCategorySelect',
-    sub: 'subCategorySelect',
-    subSub: 'subSubCategorySelect',
-    subSubSub: 'subSubSubCategorySelect',
-    subSubSubSub: 'subSubSubSubCategorySelect',
-    product: 'productCategorySelect'
-  };
+      const categoryForms = [
+        { id: 'topCategoryForm', parentSelect: null },
+        { id: 'subCategoryForm', parentSelect: selectors.top },
+        { id: 'subSubCategoryForm', parentSelect: selectors.sub },
+        { id: 'subSubSubCategoryForm', parentSelect: selectors.subSub },
+        { id: 'subSubSubSubCategoryForm', parentSelect: selectors.subSubSub }
+      ];
 
-  const categoryForms = [
-    { id: 'topCategoryForm', parentSelect: null },
-    { id: 'subCategoryForm', parentSelect: selectors.top },
-    { id: 'subSubCategoryForm', parentSelect: selectors.sub },
-    { id: 'subSubSubCategoryForm', parentSelect: selectors.subSub },
-    { id: 'subSubSubSubCategoryForm', parentSelect: selectors.subSubSub }
-  ];
+      const productForm = document.getElementById('productForm');
 
-  const productForm = document.getElementById('productForm');
-
-  const dropdowns = {};
-  for (const key in selectors) {
-    dropdowns[key] = document.getElementById(selectors[key]);
-  }
-
-  let allCategories = [];
-
-  async function fetchCategories() {
-    const res = await fetch(`${apiBase}/categories`);
-    allCategories = await res.json();
-    populateTopCategories();
-  }
-
-  function getCategoryLevel(category, allCategories) {
-  let level = 1;
-  let current = category;
-  while (current.parent) {
-    const parent = allCategories.find(c => c._id === current.parent._id);
-    if (!parent) break;
-    level++;
-    current = parent;
-  }
-  return level;
-}
-
-function populateTopCategories() {
-  const topCategories = allCategories.filter(cat => !cat.parent);
-  fillDropdown(dropdowns.top, topCategories, 'Select Top-Level Category');
-
-  // ✅ Filter and show only 5th-level categories in product dropdown
-  const fifthLevelCategories = allCategories.filter(cat => getCategoryLevel(cat, allCategories) === 5);
-  fillDropdown(dropdowns.product, fifthLevelCategories, 'Select Category');
-}
-
-
-  
-  function fillDropdown(select, items, placeholder) {
-    select.innerHTML = `<option value="">${placeholder}</option>`;
-    items.forEach(cat => {
-      const option = document.createElement('option');
-      option.value = cat._id;
-      option.textContent = cat.name;
-      select.appendChild(option);
-    });
-  }
-
-  function getChildrenOf(parentId) {
-    return allCategories.filter(cat => cat.parent && cat.parent._id === parentId);
-  }
-
-  dropdowns.top.addEventListener('change', () => {
-    const subs = getChildrenOf(dropdowns.top.value);
-    fillDropdown(dropdowns.sub, subs, 'Select Subcategory');
-    fillDropdown(dropdowns.subSub, [], 'Select Sub-Subcategory');
-    fillDropdown(dropdowns.subSubSub, [], 'Select Sub-Sub-Subcategory');
-    fillDropdown(dropdowns.subSubSubSub, [], 'Select Sub-Sub-Sub-Subcategory');
-  });
-
-  dropdowns.sub.addEventListener('change', () => {
-    const subs = getChildrenOf(dropdowns.sub.value);
-    fillDropdown(dropdowns.subSub, subs, 'Select Sub-Subcategory');
-    fillDropdown(dropdowns.subSubSub, [], 'Select Sub-Sub-Subcategory');
-    fillDropdown(dropdowns.subSubSubSub, [], 'Select Sub-Sub-Sub-Subcategory');
-  });
-
-  dropdowns.subSub.addEventListener('change', () => {
-    const subs = getChildrenOf(dropdowns.subSub.value);
-    fillDropdown(dropdowns.subSubSub, subs, 'Select Sub-Sub-Subcategory');
-    fillDropdown(dropdowns.subSubSubSub, [], 'Select Sub-Sub-Sub-Subcategory');
-  });
-
-  dropdowns.subSubSub.addEventListener('change', () => {
-    const subs = getChildrenOf(dropdowns.subSubSub.value);
-    fillDropdown(dropdowns.subSubSubSub, subs, 'Select Sub-Sub-Sub-Subcategory');
-  });
-
-  // Category form submissions
-  categoryForms.forEach(({ id, parentSelect }) => {
-    const form = document.getElementById(id);
-    form.addEventListener('submit', async e => {
-      e.preventDefault();
-
-      const formData = new FormData(form);
-      const nameInput = form.querySelector('input[type="text"]');
-      const imageInput = form.querySelector('input[type="file"]');
-      const descInput = form.querySelector('textarea');
-
-      const name = nameInput.value;
-      const description = descInput.value;
-      const image = imageInput.files[0];
-
-      const payload = new FormData();
-      payload.append('name', name);
-      payload.append('description', description);
-      if (image) payload.append('image', image);
-      if (parentSelect) {
-        const parentId = document.getElementById(parentSelect).value;
-        if (!parentId) return alert('Please select a parent category.');
-        payload.append('parent', parentId);
+      const dropdowns = {};
+      for (const key in selectors) {
+        dropdowns[key] = document.getElementById(selectors[key]);
       }
 
-      const res = await fetch(`${apiBase}/categories`, {
-        method: 'POST',
-        body: payload
+      let allCategories = [];
+
+      async function fetchCategories() {
+        const res = await fetch(`${apiBase}/categories`);
+        allCategories = await res.json();
+        populateTopCategories();
+      }
+
+      function getCategoryLevel(category, allCategories) {
+        let level = 1;
+        let current = category;
+        while (current.parent) {
+          const parent = allCategories.find(c => c._id === current.parent._id);
+          if (!parent) break;
+          level++;
+          current = parent;
+        }
+        return level;
+      }
+
+      function populateTopCategories() {
+        const topCategories = allCategories.filter(cat => !cat.parent);
+        fillDropdown(dropdowns.top, topCategories, 'Select Top-Level Category');
+
+        // âœ… Filter and show only 5th-level categories in product dropdown
+        const fifthLevelCategories = allCategories.filter(cat => getCategoryLevel(cat, allCategories) === 5);
+        fillDropdown(dropdowns.product, fifthLevelCategories, 'Select Category');
+      }
+
+
+
+      function fillDropdown(select, items, placeholder) {
+        select.innerHTML = `<option value="">${placeholder}</option>`;
+        items.forEach(cat => {
+          const option = document.createElement('option');
+          option.value = cat._id;
+          option.textContent = cat.name;
+          select.appendChild(option);
+        });
+      }
+
+      function getChildrenOf(parentId) {
+        return allCategories.filter(cat => cat.parent && cat.parent._id === parentId);
+      }
+
+      dropdowns.top.addEventListener('change', () => {
+        const subs = getChildrenOf(dropdowns.top.value);
+        fillDropdown(dropdowns.sub, subs, 'Select Subcategory');
+        fillDropdown(dropdowns.subSub, [], 'Select Sub-Subcategory');
+        fillDropdown(dropdowns.subSubSub, [], 'Select Sub-Sub-Subcategory');
+        fillDropdown(dropdowns.subSubSubSub, [], 'Select Sub-Sub-Sub-Subcategory');
       });
 
-      if (res.ok) {
-        alert('Category Added!');
-        form.reset();
-        fetchCategories();
-      }
+      dropdowns.sub.addEventListener('change', () => {
+        const subs = getChildrenOf(dropdowns.sub.value);
+        fillDropdown(dropdowns.subSub, subs, 'Select Sub-Subcategory');
+        fillDropdown(dropdowns.subSubSub, [], 'Select Sub-Sub-Subcategory');
+        fillDropdown(dropdowns.subSubSubSub, [], 'Select Sub-Sub-Sub-Subcategory');
+      });
+
+      dropdowns.subSub.addEventListener('change', () => {
+        const subs = getChildrenOf(dropdowns.subSub.value);
+        fillDropdown(dropdowns.subSubSub, subs, 'Select Sub-Sub-Subcategory');
+        fillDropdown(dropdowns.subSubSubSub, [], 'Select Sub-Sub-Sub-Subcategory');
+      });
+
+      dropdowns.subSubSub.addEventListener('change', () => {
+        const subs = getChildrenOf(dropdowns.subSubSub.value);
+        fillDropdown(dropdowns.subSubSubSub, subs, 'Select Sub-Sub-Sub-Subcategory');
+      });
+
+      // Category form submissions
+      categoryForms.forEach(({ id, parentSelect }) => {
+        const form = document.getElementById(id);
+        form.addEventListener('submit', async e => {
+          e.preventDefault();
+
+          const formData = new FormData(form);
+          const nameInput = form.querySelector('input[type="text"]');
+          const imageInput = form.querySelector('input[type="file"]');
+          const descInput = form.querySelector('textarea');
+
+          const name = nameInput.value;
+          const description = descInput.value;
+          const image = imageInput.files[0];
+
+          const payload = new FormData();
+          payload.append('name', name);
+          payload.append('description', description);
+          if (image) payload.append('image', image);
+          if (parentSelect) {
+            const parentId = document.getElementById(parentSelect).value;
+            if (!parentId) return alert('Please select a parent category.');
+            payload.append('parent', parentId);
+          }
+
+          const res = await fetch(`${apiBase}/categories`, {
+            method: 'POST',
+            body: payload
+          });
+
+          if (res.ok) {
+            alert('Category Added!');
+            form.reset();
+            fetchCategories();
+          }
+        });
+      });
+
+      // Product form submission
+      productForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        const formData = new FormData(productForm);
+
+        const name = formData.get('productName');
+        const image = document.getElementById('productImage').files[0];
+        const description = formData.get('productDescription');
+        const price = formData.get('productPrice');
+        const category = dropdowns.product.value;
+
+        if (!category) return alert('Please select a category for the product.');
+
+        const payload = new FormData();
+        payload.append('name', name);
+        payload.append('image', image);
+        payload.append('description', description);
+        payload.append('price', price);
+        payload.append('category', category);
+
+        const res = await fetch(`${apiBase}/products`, {
+          method: 'POST',
+          body: payload
+        });
+
+        if (res.ok) {
+          alert('Product Added!');
+          productForm.reset();
+        }
+      });
+
+      fetchCategories();
     });
-  });
-
-  // Product form submission
-  productForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    const formData = new FormData(productForm);
-
-    const name = formData.get('productName');
-    const image = document.getElementById('productImage').files[0];
-    const description = formData.get('productDescription');
-    const price = formData.get('productPrice');
-    const category = dropdowns.product.value;
-
-    if (!category) return alert('Please select a category for the product.');
-
-    const payload = new FormData();
-    payload.append('name', name);
-    payload.append('image', image);
-    payload.append('description', description);
-    payload.append('price', price);
-    payload.append('category', category);
-
-    const res = await fetch(`${apiBase}/products`, {
-      method: 'POST',
-      body: payload
-    });
-
-    if (res.ok) {
-      alert('Product Added!');
-      productForm.reset();
-    }
-  });
-
-  fetchCategories();
-});
-</script>
+  </script>
 
 </body>
+
 </html>
